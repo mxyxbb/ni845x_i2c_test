@@ -57,6 +57,26 @@ int main() {
 
     printf (" ....initialized successfully\n\n");
 
+    // I2C总线扫描，向I2C总线发送所有可能的设备地址，查看哪些地址有设备响应ACK
+    printf("\nStart I2C Bus Scan... \n");
+    printf("\t ");
+    for(int i=0; i<16; i++) // print column header
+        printf("%02X ", i);
+    printf("\n");
+    for(int addr=0; addr<128; addr++) { // iterate through all possible 7-bit addresses
+        if(addr%16 == 0)
+            printf("%02X:\t", addr);
+        errChk (ni845xI2cConfigurationSetAddress (I2CHandle, addr)); // set current address
+        if( kNi845xErrorMasterAddressNotAcknowledged == ni845xI2cWrite (DeviceHandle, I2CHandle, 0, NULL)) // attempt to write 0 bytes to check for ACK
+            printf(".  "); // if no ACK, print dot
+        else
+            printf("%02X ", addr); // if no error, print the address
+        if ((addr + 1) % 16 == 0) // print new line every 16 addresses
+            printf("\n");
+    }
+    printf("\nI2C Bus Scan Completed.\n");
+    errChk (ni845xI2cConfigurationSetAddress (I2CHandle, Address));
+
     WriteSize = 2;
     SendData[0] = 0x00;
     SendData[1] = 0x01;
